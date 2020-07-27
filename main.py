@@ -3,6 +3,7 @@
 import subprocess
 import optparse
 import re
+import random
 
 
 def get_argument():
@@ -13,17 +14,25 @@ def get_argument():
     if not options.interface:
         parser.error("[?] Please specify an interface, use --help for more information.")
     elif not options.new_mac:
-        parser.error("[?] Please specify a new MAC address, use --help for more information.")
+        parser.error("[?] Please specify a new MAC address or type random for a random MAC address, use --help for more information.")
     else:
         return options
 
 
 def change_mac(interface, new_mac):
-    print("[!] Changing MAC Address for " + interface + " to " + new_mac)
+    if new_mac == "random":
+        create_random_mac = "02:00:00:%02x:%02x:%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        print("[!] Changing MAC Address for " + interface + " to " + create_random_mac)
 
-    subprocess.call(["ifconfig", interface, "down"])
-    subprocess.call(["ifconfig", interface, "hw", "ether", new_mac])
-    subprocess.call(["ifconfig", interface, "up"])
+        subprocess.call(["ifconfig", interface, "down"])
+        subprocess.call(["ifconfig", interface, "hw", "ether", create_random_mac])
+        subprocess.call(["ifconfig", interface, "up"])
+    else:
+        print("[!] Changing MAC Address for " + interface + " to " + new_mac)
+
+        subprocess.call(["ifconfig", interface, "down"])
+        subprocess.call(["ifconfig", interface, "hw", "ether", new_mac])
+        subprocess.call(["ifconfig", interface, "up"])
 
 
 def get_current_mac(interface):
@@ -42,8 +51,8 @@ print("Current MAC Address: " + str(current_mac))
 
 change_mac(options.interface, options.new_mac)
 
-current_mac = get_current_mac(options.interface)
-if current_mac == options.new_mac:
-    print("[!] The MAC Address has been changed to " + current_mac)
+new_current_mac = get_current_mac(options.interface)
+if not current_mac == new_current_mac:
+    print("[!] The MAC Address has been changed to " + new_current_mac)
 else:
     print("[!]The Mac address was not changed.")
